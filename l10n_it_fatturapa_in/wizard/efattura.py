@@ -1,5 +1,6 @@
 import logging
 import re
+from collections.abc import MutableMapping
 from datetime import datetime
 
 import xmlschema
@@ -28,11 +29,9 @@ _logger.setLevel(logging.DEBUG)
 # le locations aggiuntive.
 
 _XSD_SCHEMA = "Schema_del_file_xml_FatturaPA_versione_1.2.1.xsd"
-_xml_schema_1_2_1 = get_module_resource(
-    "l10n_it_fatturapa", "bindings", "xsd", _XSD_SCHEMA
-)
+_xml_schema_1_2_1 = get_module_resource("l10n_it_fatturapa", "data", "xsd", _XSD_SCHEMA)
 _old_xsd_specs = get_module_resource(
-    "l10n_it_fatturapa", "bindings", "xsd", "xmldsig-core-schema.xsd"
+    "l10n_it_fatturapa", "data", "xsd", "xmldsig-core-schema.xsd"
 )
 
 _logger = logging.getLogger(__name__)
@@ -164,9 +163,9 @@ def _fix_xmlstring(xml_string):
     return xml_string.encode()
 
 
-def CreateFromDocument(xml_string):
+def CreateFromDocument(xml_string):  # noqa: C901
     # il codice seguente rimpiazza fatturapa.CreateFromDocument(xml_string)
-    class ObjectDict(object):
+    class ObjectDict(MutableMapping):
         def __getattr__(self, attr):
             try:
                 return getattr(self.__dict__, attr)
@@ -178,6 +177,15 @@ def CreateFromDocument(xml_string):
 
         def __setitem__(self, *attr, **kwattr):
             return self.__dict__.__setitem__(*attr, **kwattr)
+
+        def __delitem__(self, *attr, **kwattr):
+            return self.__dict__.__delitem__(*attr, **kwattr)
+
+        def __iter__(self, *attr, **kwattr):
+            return self.__dict__.__iter__(*attr, **kwattr)
+
+        def __len__(self, *attr, **kwattr):
+            return self.__dict__.__len__(*attr, **kwattr)
 
     # TODO: crearlo una tantum?
     validator = xmlschema.XMLSchema(
